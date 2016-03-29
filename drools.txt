@@ -1,0 +1,133 @@
+There are different ways to debug a Drools project. Here, we will write a Utility class to let you know which rules are being triggered or fired.
+
+With this approach, you can check what all rules are getting triggered in your Drools project. Here is our Utility Class
+
+Utility.java
+package com.sample;
+
+import org.drools.spi.KnowledgeHelper;
+
+public class Utility {
+   public static void help(final KnowledgeHelper drools, final String message){
+      System.out.println(message);
+      System.out.println("\nrule triggered: " + drools.getRule().getName());
+   }
+   
+   public static void helper(final KnowledgeHelper drools){
+      System.out.println("\nrule triggered: " + drools.getRule().getName());
+   }
+}
+The first method help prints the rule triggered along with some extra information which you can pass as String via the DRL file.
+
+The second rule helper prints whether the particular rule was triggered or not.
+
+We have added one of the Utility methods in each DRL file. We have also added the import function in the DRL file (Pune.drl). In the then part of the rule, we have added the utility function call. The modified Pune.drl is given below. Changes are highlighted in blue.
+
+Modified Pune.drl
+//created on: Dec 24, 2014
+package droolsexample
+
+//list any import classes here.
+import com.sample.ItemCity;
+import java.math.BigDecimal;
+import com.sample.HelloCity; 
+
+import function com.sample.Utility.helper;
+
+// declare any global variables here
+dialect "java"
+rule "Pune Medicine Item"
+
+   when
+      item : ItemCity(purchaseCity == ItemCity.City.PUNE, 
+                      typeofItem == ItemCity.Type.MEDICINES)
+   
+   then
+      BigDecimal tax = new BigDecimal(0.0);
+      item.setLocalTax(tax.multiply(item.getSellPrice()));
+      HelloCity.writeHello(item.getPurchaseCity().toString()); 
+      helper(drools);
+end
+
+rule "Pune Groceries Item"
+
+   when
+      item : ItemCity(purchaseCity == ItemCity.City.PUNE, 
+                      typeofItem == ItemCity.Type.GROCERIES)
+      
+   then
+      BigDecimal tax = new BigDecimal(2.0);
+      item.setLocalTax(tax.multiply(item.getSellPrice())); 
+      helper(drools);
+end
+Similarly, we have added the other utility function in the second DRL file (Nagpur.drl). Here is the modified code:
+
+Modified Nagpur.drl
+// created on: Dec 26, 2014
+package droolsexample
+
+// list any import classes here.
+import com.sample.ItemCity;
+import java.math.BigDecimal; 
+
+import function com.sample.Utility.help;
+
+//declare any global variables here
+dialect "java"
+
+rule "Nagpur Medicine Item"
+   
+   when
+      item : ItemCity(purchaseCity == ItemCity.City.NAGPUR, 
+                      typeofItem == ItemCity.Type.MEDICINES)
+   
+   then
+      BigDecimal tax = new BigDecimal(0.0);
+      item.setLocalTax(tax.multiply(item.getSellPrice())); 
+      help(drools,"added info");
+end
+
+rule "Nagpur Groceries Item"
+   
+   when
+      item : ItemCity(purchaseCity == ItemCity.City.NAGPUR, 
+                      typeofItem == ItemCity.Type.GROCERIES)
+   
+   then
+      BigDecimal tax = new BigDecimal(1.0);
+      item.setLocalTax(tax.multiply(item.getSellPrice())); 
+      help(drools,"info");
+end
+Run the program again and it should produce the following output:
+
+info
+
+rule triggered: Nagpur Groceries Item
+added info
+
+rule triggered: Nagpur Medicine Item
+
+rule triggered: Pune Groceries Item
+HELLO PUNE!!!!!!
+
+rule triggered: Pune Medicine Item
+PUNE 0
+PUNE 20
+NAGPUR 0
+NAGPUR 10
+Both the utility functions are called and it shows whether the particular rule was called or not. In the above example, all the rules are being called, but in an enterprise application, this utility function can be really useful to debug and find out whether a particular rule was fired or not.
+
+Using the Debug Perspective in Eclipse
+You can debug the rules during the execution of your Drools application. You can add breakpoints in the consequences of your rules, and whenever such a breakpoint is encountered during the execution of the rules, execution is stopped temporarily. You can then inspect the variables known at that point as you do in a Java Application, and use the normal debugging options available in Eclipse.
+
+To create a breakpoint in your DRL file, just double-click at the line where you want to create a breakpoint. Remember, you can only create a breakpoint in the then part of a rule. A breakpoint can be removed by double-clicking on the breakpoint in the DRL editor.
+
+After applying the breakpoints, you need to debug your application as a Drools application. Drools breakpoints (breakpoints in DRL file) will only work if your application is being debugged as a Drools application. Here is how you need to do the same:
+
+Drools Application
+Once you debug your application as a Drools application, you would see the control on the DRL file as shown in the following screenshot:
+
+Eclipse Platform
+You can see the variables and the current values of the object at that debug point. The same control of F6 to move to the next line and F8 to jump to the next debug point are applicable here as well. In this way, you can debug your Drools application.
+
+Note: The debug perspective in Drools application works only if the dialect is MVEL until Drools 5.x.
